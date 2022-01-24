@@ -29,24 +29,27 @@ net.createServer(function (sock){
                     sock.write('Send \"START\" to paly')
                     state = 1
                 }
-            case 2:        
-                let client_num = + data
-                if(!db[current_key])
-                    db[current_key] = 0
-
-                if(client_num > db[current_key]){
-                    sock.write('Less than!!')
-                    state = 2
-                }else if(client_num < db[current_key]){
-                    sock.write('More than!!')
-                    state = 2
-                }else if(client_num == db[current_key]){
-                    sock.write('Correct!! Send \"STOP\" to exit ')
-                    state = 3 //wait to exit
-                }
+            case 2:   
+            try{       
+                let client_num = parseInt(data)
+                    if(client_num > db[current_key]){
+                        sock.write('Less than!!')
+                        state = 2
+                    }else if(client_num < db[current_key]){
+                        sock.write('More than!!')
+                        state = 2
+                    }else if(client_num == db[current_key]){
+                       sock.write('Correct!! Send \"STOP\" to exit ')
+                        state = 3 //wait to exit
+                        break
+                    }   
+            }catch(e){
+                sock.write('INVALID')
+            }    
             case 3:
                 if(data == 'STOP'){
                     sock.close()
+                    break
                 }       
         }
     })
@@ -66,9 +69,19 @@ client.connect(PORT, HOST, function() {
     
     client.on('data', function(data) {
         client.write('START')
+
+        client.on('data', function(data) {
+            client.write('5')
+
+            client.on('data', function(data) {
+                client.write('STOP')
+                console.log('Received: ' + data)
+            })
+            console.log('Received: ' + data)
+        })   
         console.log('Received: ' + data)
-    })
-})
+    })  
+})    
 
 client.on('close', function() {
 	console.log('Connection closed');
